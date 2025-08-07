@@ -1,0 +1,14 @@
+torch
+torchvision
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+ultralytics
+tqdm
+opencv-python
+albumentations
+segmentation-models-pytorch
+transformers
+git+https://github.com/facebookresearch/segment-anything.git

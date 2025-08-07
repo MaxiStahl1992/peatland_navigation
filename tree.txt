@@ -1,0 +1,12 @@
+data/processed/detection
+├── data.yaml
+├── images
+│   ├── test
+│   ├── train
+│   └── val
+└── labels
+    ├── test
+    ├── train
+    └── val
+
+9 directories, 1 file

@@ -2,7 +2,65 @@
 
 ## Overview
 
-This project focuses on computer vision-based navigation in peatland environments. It implements multiple deep learning approaches for path detection and semantic segmentation, helping to identify navigable paths, vegetation, trees, and natural ground in peatland areas.
+This project develops an advanced computer vision system for autonomous navigation in peatland environments. Using multiple deep learning models, it creates a comprehensive navigation assistance system that can identify paths, obstacles, and terrain features while providing real-world measurements for safe traversal.
+
+### Key Objectives
+
+- Safe and efficient path identification in challenging peatland terrain
+- Real-time navigation assistance with distance measurements
+- Environmental preservation through accurate path following
+- Robust operation in varying weather and lighting conditions
+
+### Core Capabilities
+
+- Path detection and segmentation
+- Navigation marker recognition
+- Real-world distance measurements
+- Terrain classification
+- Obstacle detection and avoidance
+
+## Technical Architecture
+
+### 1. Multi-Model Vision Pipeline
+
+The system integrates four specialized deep learning models:
+
+1. **Binary Path Segmentation (U-Net)**
+
+   - Primary path identification
+   - ResNet34 backbone for robust feature extraction
+   - Real-time segmentation capability
+   - Initial path proposal generation
+
+2. **Segment Anything Model (SAM)**
+
+   - High-precision boundary refinement
+   - Vision Transformer architecture
+   - Point-prompt based refinement
+   - Accurate path delineation
+
+3. **Object Detection (YOLOv11)**
+
+   - Navigation marker identification
+   - Multiple object classes (benches, cones, signs)
+   - Real-time detection performance
+   - Distance-based measurements
+
+4. **Depth Estimation (MiDaS)**
+   - Real-world distance calculation
+   - Path width measurement
+   - Obstacle distance estimation
+   - Spatial awareness enhancement
+
+### 2. Environmental Understanding
+
+The system classifies terrain into five categories:
+
+- **Paths**: Primary navigation routes
+- **Natural Ground**: Traversable terrain
+- **Trees**: Major obstacles and landmarks
+- **Vegetation**: Secondary terrain features
+- **Background**: Non-relevant areas
 
 ## Project Structure
 
@@ -68,6 +126,84 @@ Evaluation notebooks are provided for each approach:
 - `evaluate_segmentation.ipynb`
 - `evaluate_segmentation_dino.ipynb`
 
-## Model Outputs
+## Dataset Organization
 
-Final video outputs can be found in `training/final_video_output/`
+### Detection Dataset
+
+- Format: YOLO-style annotations
+- Classes: Bench, Cones, Signs
+- Split: train/val/test
+- Includes negative samples for robustness
+
+### Segmentation Dataset
+
+1. **Binary Dataset**
+
+   - Two classes: Path/Non-path
+   - Focused on path identification
+   - High-precision annotations
+
+2. **Multi-class Dataset**
+   - Five terrain classes
+   - Pixel-wise annotations
+   - Balanced class distribution
+
+## Training Pipeline
+
+### 1. Object Detection
+
+- YOLOv11 architecture
+- Transfer learning from COCO
+- Custom augmentation pipeline
+- Negative sample integration
+
+### 2. Binary Segmentation
+
+- U-Net with ResNet34
+- Binary cross-entropy loss
+- Real-time inference focus
+- Temporal consistency optimization
+
+### 3. Multi-class Segmentation
+
+- Choice of architectures:
+  - U-Net with ResNet34
+  - DinoV2 with custom decoder
+- Class-balanced loss
+- Advanced augmentation strategy
+
+## Inference and Deployment
+
+### Video Processing
+
+- Frame rate: 10 FPS (optimized)
+- Resolution: 640x480
+- Real-time capable processing
+- Temporal smoothing integration
+
+### Output Features
+
+- Path boundary visualization
+- Distance measurements
+- Object detection with confidence
+- Path width estimation
+- Navigation markers
+
+## Evaluation Metrics
+
+### Detection Performance
+
+- mAP50-95
+- Precision-Recall curves
+- Class-wise accuracy
+- Real-time processing speed
+
+### Segmentation Quality
+
+- IoU (Intersection over Union)
+- Pixel-wise accuracy
+- Class-wise metrics
+- Temporal consistency
+
+
+

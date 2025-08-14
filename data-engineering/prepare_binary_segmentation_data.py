@@ -1,3 +1,10 @@
+"""
+This script prepares binary segmentation data by converting multi-class segmentation masks
+into binary masks where pixels are classified as either 'path' (1) or 'not path' (0).
+The script processes the GOOSE dataset structure, maintaining the original train/val/test split
+while simplifying the segmentation task to a binary classification problem.
+"""
+
 import os
 import shutil
 from pathlib import Path
@@ -8,13 +15,17 @@ from tqdm import tqdm
 
 def create_binary_class_mapping(mapping_csv_path: Path) -> list:
     """
-    Identifies the GOOSE label IDs that correspond to a walkable path.
+    Identifies the GOOSE label IDs that correspond to walkable path surfaces.
+    
+    This function reads a CSV mapping file and identifies all class IDs that represent
+    walkable surfaces such as asphalt, gravel, sidewalks, etc. These IDs are used to
+    create binary masks where walkable surfaces are labeled as 1 and all other surfaces as 0.
 
     Args:
-        mapping_csv_path: Path to the goose_label_mapping.csv file.
+        mapping_csv_path: Path to the goose_label_mapping.csv file containing the class definitions
 
     Returns:
-        A list of integer IDs corresponding to path-related classes.
+        list[int]: A list of integer IDs corresponding to path-related classes
     """
     # Define the GOOSE classes that we consider to be a "path"
     path_classes = ["asphalt", "gravel", "sidewalk", "bikeway", "cobble"]
@@ -30,6 +41,19 @@ def create_binary_class_mapping(mapping_csv_path: Path) -> list:
 def process_dataset_split_binary(source_dir: Path, dest_dir: Path, path_ids: list):
     """
     Processes a single dataset split (train, val, or test) for binary segmentation.
+    
+    This function converts multi-class segmentation masks into binary masks where
+    path pixels are labeled as 1 and all other pixels as 0. The function maintains
+    the directory structure and handles image-mask pairs appropriately.
+
+    Args:
+        source_dir (Path): Directory containing the source dataset split
+        dest_dir (Path): Directory where the processed binary dataset will be saved
+        path_ids (list): List of class IDs that represent walkable paths
+
+    Note:
+        The function expects a specific directory structure with 'images' and 'labels'
+        subdirectories in both source and destination paths.
     """
     dest_images_dir = dest_dir / "images"
     dest_masks_dir = dest_dir / "masks"
@@ -78,7 +102,18 @@ def process_dataset_split_binary(source_dir: Path, dest_dir: Path, path_ids: lis
         shutil.copy(image_path, dest_images_dir / f"{output_basename}.png")
 
 def main():
-    """Main function to run the binary data preparation pipeline."""
+    """
+    Main function to run the binary data preparation pipeline.
+    
+    This function orchestrates the entire process of creating a binary segmentation dataset:
+    1. Loads the class mapping from the GOOSE dataset
+    2. Identifies classes that represent walkable paths
+    3. Processes each dataset split (train/val) to create binary masks
+    4. Saves the processed dataset in a new directory structure
+    
+    Note:
+        The test set is not processed as it typically doesn't include labels.
+    """
     base_source_dir = Path("data/segmentation")
     # Save to a new directory to keep experiments separate
     base_dest_dir = Path("data/processed/binary_segmentation")

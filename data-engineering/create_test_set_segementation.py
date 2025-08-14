@@ -1,3 +1,9 @@
+"""
+This script creates a test dataset for segmentation by splitting the validation dataset in half.
+The script moves approximately 50% of the validation images and their corresponding masks
+to a new test directory, maintaining the paired relationship between images and masks.
+"""
+
 import os
 import shutil
 from pathlib import Path

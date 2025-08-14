@@ -1,3 +1,10 @@
+"""
+This script prepares multi-class segmentation data by converting the GOOSE dataset's
+detailed class structure into a simplified set of classes relevant for navigation:
+PATH, NATURAL_GROUND, TREE, VEGETATION, and IGNORE. The script maintains the spatial
+relationships while reducing the complexity of the segmentation task.
+"""
+
 import os
 import shutil
 from pathlib import Path
@@ -8,7 +15,23 @@ from tqdm import tqdm
 
 def create_class_mapping(mapping_csv_path: Path) -> tuple[dict, dict]:
     """
-    Creates the mapping from GOOSE class names to our new, simplified classes.
+    Creates the mapping from GOOSE class names to simplified navigation classes.
+    
+    This function defines a simplified class structure for navigation purposes
+    by grouping the detailed GOOSE classes into broader categories:
+    - PATH: surfaces suitable for navigation
+    - NATURAL_GROUND: unpaved but potentially traversable surfaces
+    - TREE: tree-related objects that should be avoided
+    - VEGETATION: various types of vegetation
+    - IGNORE: any other classes
+    
+    Args:
+        mapping_csv_path (Path): Path to the GOOSE dataset's class mapping CSV
+
+    Returns:
+        tuple[dict, dict]:
+            - First dict: Maps class names to new class IDs
+            - Second dict: Maps new class IDs to lists of original GOOSE class IDs
     """
     target_class_definitions = {
         "PATH": ["asphalt", "gravel", "sidewalk", "bikeway", "cobble"],
@@ -34,7 +57,22 @@ def create_class_mapping(mapping_csv_path: Path) -> tuple[dict, dict]:
 
 def process_dataset_split(source_dir: Path, dest_dir: Path, new_classes: dict, id_mapping: dict):
     """
-    Processes a single dataset split (train, val, or test).
+    Processes a single dataset split (train, val, or test) to create simplified segmentation masks.
+    
+    This function converts the detailed GOOSE segmentation masks into simplified
+    versions using the new class mapping. It maintains the directory structure
+    and handles image-mask pairs appropriately.
+
+    Args:
+        source_dir (Path): Directory containing the source dataset split
+        dest_dir (Path): Directory where the processed dataset will be saved
+        new_classes (dict): Mapping of class names to new class IDs
+        id_mapping (dict): Mapping of new class IDs to lists of original GOOSE class IDs
+
+    Note:
+        The function expects a specific directory structure with 'images' and 'labels'
+        subdirectories in the source path. The destination will mirror this structure
+        but with masks instead of labels.
     """
     dest_images_dir = dest_dir / "images"
     dest_masks_dir = dest_dir / "masks"
@@ -86,7 +124,20 @@ def process_dataset_split(source_dir: Path, dest_dir: Path, new_classes: dict, i
         shutil.copy(image_path, dest_images_dir / f"{output_basename}.png")
 
 def main():
-    """Main function to run the entire data preparation pipeline."""
+    """
+    Main function to run the entire data preparation pipeline.
+    
+    This function orchestrates the complete process of creating a simplified
+    segmentation dataset:
+    1. Loads and processes the GOOSE class mapping
+    2. Creates new class definitions for navigation purposes
+    3. Processes each dataset split to create new segmentation masks
+    4. Saves the processed dataset in a new directory structure
+    
+    Note:
+        Currently processes only the training split as validation and test
+        sets may have different requirements or structures.
+    """
     base_source_dir = Path("data/segmentation")
     base_dest_dir = Path("data/processed/segmentation")
 

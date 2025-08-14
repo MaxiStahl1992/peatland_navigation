@@ -1,15 +1,19 @@
+"""
+This script processes Labelbox NDJSON exports and prepares a YOLO-format dataset for fine-tuning.
+It handles downloading images from URLs, converting Labelbox annotations to YOLO format,
+and organizing the dataset into appropriate train/validation/test splits. The script ensures
+class IDs match the main dataset for consistency in fine-tuning.
+"""
+
 import os
 import json
 from pathlib import Path
 import shutil
 import random
 from tqdm import tqdm
-import requests # For downloading images
+import requests  # For downloading images
 import yaml
 
-# =============================================================================
-# ## 1. Configuration
-# =============================================================================
 # --- Source File ---
 NDJSON_FILE = Path("./data/video/fintune_labels.ndjson")
 
@@ -27,11 +31,25 @@ CLASS_MAPPING = {
 TRAIN_RATIO = 0.8
 VALID_RATIO = 0.1
 
-# =============================================================================
-# ## 2. Helper Functions
-# =============================================================================
+
 def create_yolo_structure(base_path: Path):
-    """Creates the necessary folder structure for the fine-tuning dataset."""
+    """
+    Creates the necessary folder structure for the fine-tuning dataset.
+    
+    This function sets up a clean directory structure required for YOLO fine-tuning:
+    - images/train
+    - images/val
+    - images/test
+    - labels/train
+    - labels/val
+    - labels/test
+    
+    If the destination directory already exists, it will be removed to ensure
+    a clean build.
+
+    Args:
+        base_path (Path): The root directory where the YOLO structure will be created
+    """
     if base_path.exists():
         print(f"Destination folder {base_path} already exists. Deleting it for a clean build.")
         shutil.rmtree(base_path)
@@ -47,8 +65,25 @@ def create_yolo_structure(base_path: Path):
 
 def convert_labelbox_to_yolo(json_data):
     """
-    Parses a single line of the Labelbox NDJSON export and converts it to
-    YOLO format.
+    Converts Labelbox annotation format to YOLO format.
+    
+    This function processes a single JSON entry from a Labelbox export,
+    extracting bounding box information and converting it to YOLO format:
+    <class_id> <center_x> <center_y> <width> <height>
+    where all dimensions are normalized to [0,1].
+
+    Args:
+        json_data (dict): A dictionary containing Labelbox annotation data
+
+    Returns:
+        tuple: (image_url, image_filename, yolo_labels)
+            - image_url (str): URL to download the image
+            - image_filename (str): Name to save the image as
+            - yolo_labels (list): List of YOLO format annotation strings
+            
+    Note:
+        Returns (None, None, None) if the annotation cannot be processed
+        or contains invalid data.
     """
     try:
         image_url = json_data['data_row']['row_data']
@@ -84,7 +119,24 @@ def convert_labelbox_to_yolo(json_data):
         return None, None, None
 
 def create_yaml_file(base_dir):
-    """Creates the data.yaml file with absolute paths."""
+    """
+    Creates the data.yaml file with absolute paths for YOLO training.
+    
+    This function generates a YAML configuration file that specifies:
+    - Paths to train/val/test image directories
+    - Number of classes
+    - Class names
+    
+    The paths are stored as absolute paths to ensure compatibility
+    across different working directories.
+
+    Args:
+        base_dir (Path): The root directory where data.yaml will be created
+        
+    Note:
+        The class names and number of classes are taken from the global
+        CLASS_MAPPING dictionary.
+    """
     print("\nCreating data.yaml file...")
     yaml_data = {
         'train': str(base_dir.resolve() / "images/train"),
@@ -98,9 +150,6 @@ def create_yaml_file(base_dir):
         yaml.dump(yaml_data, f, sort_keys=False, default_flow_style=False)
     print("data.yaml created successfully.")
 
-# =============================================================================
-# ## 3. Main Execution
-# =============================================================================
 if __name__ == "__main__":
     create_yolo_structure(BASE_DEST_DIR)
     

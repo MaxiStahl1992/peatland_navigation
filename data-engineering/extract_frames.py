@@ -1,5 +1,13 @@
+"""
+This script extracts frames from a video file for further processing.
+The script focuses on the last 60 seconds of the video (if available)
+and saves each frame as a separate image file. This is particularly useful
+for creating training data from video footage.
+"""
+
 import cv2
 
+# Configuration parameters for video processing
 video_path = "./data/video/splits/Clip_3_35s.mp4"
 output_dir = "./data/video/frames"
 fps = None

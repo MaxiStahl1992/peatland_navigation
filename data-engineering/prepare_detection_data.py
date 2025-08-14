@@ -1,3 +1,10 @@
+"""
+This script prepares a unified YOLO-format detection dataset by combining multiple individual
+datasets (benches, cones, and signs) into a single dataset with consistent class IDs.
+The script handles merging the datasets, remapping class IDs, and creating appropriate
+train/validation/test splits while maintaining proper YOLO directory structure.
+"""
+
 import os
 from pathlib import Path
 import shutil
@@ -5,9 +12,6 @@ import random
 from tqdm import tqdm
 import yaml
 
-# =============================================================================
-# ## 1. Configuration
-# =============================================================================
 # --- Source Data Paths (Update these to match your new folder names) ---
 BASE_SOURCE_DIR = Path("./data/detection") # Assuming a new parent folder for the new data
 BENCH_DIR = BASE_SOURCE_DIR / "Bench.v1i.yolov11" 
@@ -29,11 +33,25 @@ TRAIN_RATIO = 0.8
 VALID_RATIO = 0.1
 TEST_RATIO = 0.1
 
-# =============================================================================
-# ## 2. Helper Functions
-# =============================================================================
+
 def create_yolo_structure(base_path: Path):
-    """Creates the necessary folder structure for the final YOLO dataset."""
+    """
+    Creates the necessary folder structure for the final YOLO dataset.
+    
+    This function sets up a clean directory structure required for YOLO training:
+    - images/train
+    - images/val
+    - images/test
+    - labels/train
+    - labels/val
+    - labels/test
+    
+    If the destination directory already exists, it will be removed to ensure
+    a clean build.
+
+    Args:
+        base_path (Path): The root directory where the YOLO structure will be created
+    """
     if base_path.exists():
         print(f"Destination folder {base_path} already exists. Deleting it for a clean build.")
         shutil.rmtree(base_path)
@@ -49,6 +67,21 @@ def create_yolo_structure(base_path: Path):
 def collect_all_files(source_dir: Path, dataset_name: str, target_class_id: int):
     """
     Collects all image and label pairs from a dataset, ignoring original splits.
+    
+    This function recursively searches through a dataset directory to find all
+    matching image-label pairs, regardless of their original split (train/val/test).
+    The function ensures that each label file has a corresponding image file.
+
+    Args:
+        source_dir (Path): The root directory of the source dataset
+        dataset_name (str): Name of the dataset (e.g., 'bench', 'cone', 'sign')
+        target_class_id (int): The new class ID to assign to all instances
+
+    Returns:
+        list[tuple]: List of tuples containing (image_path, label_path, target_class_id, dataset_name)
+        
+    Note:
+        The function silently skips label files that don't have matching image files.
     """
     print(f"Collecting files from {dataset_name.capitalize()}...")
     all_pairs = []
@@ -69,7 +102,20 @@ def collect_all_files(source_dir: Path, dataset_name: str, target_class_id: int)
     return all_pairs
 
 def create_yaml_file():
-    """Creates the data.yaml file with absolute paths."""
+    """
+    Creates the data.yaml file with absolute paths for YOLO training.
+    
+    This function generates a YAML configuration file that specifies:
+    - Paths to train/val/test image directories
+    - Number of classes
+    - Class names
+    
+    The paths are stored as absolute paths to ensure compatibility
+    across different working directories.
+
+    Note:
+        The file is saved as 'data.yaml' in the base destination directory.
+    """
     print("\nCreating data.yaml file...")
     yaml_data = {
         'train': str(BASE_DEST_DIR.resolve() / "images/train"),
@@ -83,9 +129,7 @@ def create_yaml_file():
         yaml.dump(yaml_data, f, sort_keys=False, default_flow_style=False)
     print("data.yaml created successfully with absolute paths.")
 
-# =============================================================================
-# ## 3. Main Execution
-# =============================================================================
+
 if __name__ == "__main__":
     create_yolo_structure(BASE_DEST_DIR)
     

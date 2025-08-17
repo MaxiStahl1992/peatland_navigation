@@ -53,4 +53,6 @@ Thumbs.db
 training/metrics/
 training/runs/
 training/final_video_output/
+training/final_video_output_new/
 data/
+runs/
